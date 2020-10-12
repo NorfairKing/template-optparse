@@ -1,0 +1,32 @@
+name: optparse-template
+version: '0.0.0.0'
+copyright: ! 'Copyright: (c) 2020 Tom Sydney Kerckhove'
+license: AllRightsReserved
+  
+dependencies:
+- base
+
+library:
+  source-dirs: src/
+  ghc-options: -Wall
+  dependencies:
+  - envparse
+  - optparse-applicative
+  - path
+  - path-io
+  - text
+  - yaml
+  - yamlparse-applicative
+
+tests:
+  optparse-template-test:
+    main: Spec.hs
+    source-dirs: test/
+    ghc-options:
+    - -Wall
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - optparse-template
+    - hspec

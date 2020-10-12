@@ -1,0 +1,45 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.34.2.
+--
+-- see: https://github.com/sol/hpack
+
+name:           optparse-template
+version:        0.0.0.0
+copyright:      Copyright: (c) 2020 Tom Sydney Kerckhove
+license:        AllRightsReserved
+license-file:   LICENSE
+build-type:     Simple
+
+library
+  exposed-modules:
+      OptParse
+  other-modules:
+      Paths_optparse_template
+  hs-source-dirs:
+      src/
+  ghc-options: -Wall
+  build-depends:
+      base
+    , envparse
+    , optparse-applicative
+    , path
+    , path-io
+    , text
+    , yaml
+    , yamlparse-applicative
+  default-language: Haskell2010
+
+test-suite optparse-template-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_optparse_template
+  hs-source-dirs:
+      test/
+  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base
+    , hspec
+    , optparse-template
+  default-language: Haskell2010
