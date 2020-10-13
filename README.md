@@ -19,4 +19,4 @@ You can also use cabal if you prefer, as long as you can get the appropriate dep
 To use this template, copy the `src/OptParse.hs` and `test/OptParseSpec.hs` modules into your project and follow instructions inside.
 
 Run `stack haddock` to read the instructions in haddock form.
-Otherwise, continue reading in [the source](src/OptParse.hs).
+Otherwise, continue reading in [the source](src/OptParse.hs) and [the tests](test/OptParseSpec.hs).
