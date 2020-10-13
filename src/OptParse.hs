@@ -68,7 +68,7 @@
 --
 -- As an example, suppose our program uses a cache file for its 'compute' command.
 --
--- 1. Hhave a constructor for the 'compute' command that in the 'Command' sum type: 'CommandCompute'
+-- 1. Have a constructor for the 'compute' command that in the 'Command' sum type: 'CommandCompute'
 -- 2. Add a 'ComputeArgs' type that contains a 'commandFlagCacheFile :: Maybe FilePath' field to indicate that the user may specify this file on the command-line.
 -- 3. Add a field to the 'Environment' type to indicate that the user may specify this file in an environment variable.
 -- 4. Add a field to the 'Configuration' type to indicate that the user may specify this file in the configuration file as well.
@@ -93,6 +93,7 @@ module OptParse
     -- ** Exposed for testing
     combineToInstructions,
     getArguments,
+    prefs_,
     argParser,
     parseArgs,
     parseCommand,
@@ -255,6 +256,7 @@ data Arguments
 getArguments :: IO OptParse.Arguments
 getArguments = customExecParser prefs_ argParser
 
+-- | The 'optparse-applicative' parsing preferences
 prefs_ :: OptParse.ParserPrefs
 prefs_ =
   -- I like these preferences. Use what you like.

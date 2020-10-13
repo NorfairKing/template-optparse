@@ -28,5 +28,8 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - template-optparse
+    - envparse
     - hspec
+    - optparse-applicative
+    - template-optparse
+    - yaml

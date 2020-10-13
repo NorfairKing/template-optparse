@@ -34,12 +34,16 @@ test-suite template-optparse-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      OptParseSpec
       Paths_template_optparse
   hs-source-dirs:
       test/
   ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base
+    , envparse
     , hspec
+    , optparse-applicative
     , template-optparse
+    , yaml
   default-language: Haskell2010
