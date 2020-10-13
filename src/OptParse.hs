@@ -57,12 +57,19 @@
 -- In the second stage, in the `combineToInstructions` function, all these variables are combined together to produce the 'Instructions'.
 -- It is in this phase that we do processing, validation and even 'System.Exit.die' if necessary.
 --
+-- === Included Example
+--
+-- This template comes with an example implementation for the 'OptParse' module for a hello world program that has one command: greet.
+-- This command accepts a '--greeting' option, a 'HELLO_WORLD_GREETING' environment variable, or a 'greeting' field in the configuration file, to specify what to say when greeting the user.
+-- The program also accepts  a '--polite' flag, a 'HELLO_WORLD_POLITE' environment variable, or a 'polite' field in the configuration file, to specify whether or not to be polite when greeting the user.
+-- The greeting setting works for the 'greet' command only while the politeness setting works across commands.
+--
 -- === 'FilePath' Example
 --
 -- As an example, suppose our program uses a cache file for its 'compute' command.
 --
 -- 1. Hhave a constructor for the 'compute' command that in the 'Command' sum type: 'CommandCompute'
--- 2. Add a 'ComputeFlags' type that contains a 'commandFlagCacheFile :: Maybe FilePath' field to indicate that the user may specify this file on the command-line.
+-- 2. Add a 'ComputeArgs' type that contains a 'commandFlagCacheFile :: Maybe FilePath' field to indicate that the user may specify this file on the command-line.
 -- 3. Add a field to the 'Environment' type to indicate that the user may specify this file in an environment variable.
 -- 4. Add a field to the 'Configuration' type to indicate that the user may specify this file in the configuration file as well.
 -- 5. Combine the above three in the 'combineToInstructions' function.
@@ -75,7 +82,34 @@
 -- You can see an example of option parsing according to this template at https://github.com/NorfairKing/intray/blob/master/intray-cli/src/Intray/Cli/OptParse.hs
 --
 -- If you have any trouble, you can contact @syd@ at @cs-syd@ dot @eu@ for support.
-module OptParse where
+module OptParse
+  ( -- * Interface
+    getInstructions,
+    Instructions (..),
+    Dispatch (..),
+    GreetSettings (..),
+    Settings (..),
+
+    -- ** Exposed for testing
+    combineToInstructions,
+    getArguments,
+    argParser,
+    parseArgs,
+    parseCommand,
+    parseCommandGreet,
+    parseFlags,
+    Arguments (..),
+    Command (..),
+    GreetArgs (..),
+    Flags (..),
+    getEnvironment,
+    environmentParser,
+    Environment (..),
+    getConfiguration,
+    defaultConfigFile,
+    Configuration (..),
+  )
+where
 
 import Control.Applicative
 import Data.Maybe
@@ -88,10 +122,8 @@ import Options.Applicative as OptParse
 import qualified Options.Applicative.Help as OptParse (string)
 import Path
 import Path.IO
-import qualified System.Environment as System
 import YamlParse.Applicative as YamlParse
 
--- The combination of the command with its settings, and settings that are used for every command.
 data Instructions
   = Instructions Dispatch Settings
   deriving (Show, Eq, Generic)
@@ -103,19 +135,19 @@ getInstructions = do
   config <- getConfiguration flags env
   combineToInstructions args env config
 
--- Settings that you need for every command
+-- | A product type for the settings that are common across commands
 data Settings
   = Settings
       { settingPolite :: Bool
       }
   deriving (Show, Eq, Generic)
 
--- A sum type for the commands and their individual settings
+-- | A sum type for the commands and their specific settings
 data Dispatch
   = DispatchGreet GreetSettings
   deriving (Show, Eq, Generic)
 
--- A type per command for its settings.
+-- | One type per command for its settings.
 -- You can omit this if the command does not need specific settings.
 data GreetSettings
   = GreetSettings
@@ -123,11 +155,13 @@ data GreetSettings
       }
   deriving (Show, Eq, Generic)
 
--- Combine everything to instructions
+-- | Combine everything to instructions
 combineToInstructions :: Arguments -> Environment -> Maybe Configuration -> IO Instructions
 combineToInstructions (Arguments cmd Flags {..}) Environment {..} mConf = do
-  -- flag first, then environment, then config file
-  -- default value if none of the above are used
+  -- This is a typical way to combine a setting.
+  --
+  -- We choose the first of the supplied flag, environment variable or configuration field,
+  -- or default value if none of the those were supplied.
   let settingPolite = fromMaybe True $ flagPolite <|> envPolite <|> mc configPolite
   let sets = Settings {..}
   disp <-
@@ -141,8 +175,12 @@ combineToInstructions (Arguments cmd Flags {..}) Environment {..} mConf = do
     mc :: (Configuration -> Maybe a) -> Maybe a
     mc f = mConf >>= f
 
--- What we find in the configuration variable.
+-- | What we find in the configuration variable.
+--
 -- Do nothing clever here, just represent the configuration file.
+-- For example, use 'Maybe FilePath', not 'Path Abs File'.
+--
+-- Use 'YamlParse.readConfigFile' or 'YamlParse.readFirstConfigFile' to read a configuration.
 data Configuration
   = Configuration
       { configPolite :: Maybe Bool,
@@ -153,6 +191,7 @@ data Configuration
 instance FromJSON Configuration where
   parseJSON = viaYamlSchema
 
+-- | We use 'yamlparse-applicative' for parsing a YAML config.
 instance YamlSchema Configuration where
   yamlSchema =
     objectParser "Configuration" $
@@ -160,7 +199,8 @@ instance YamlSchema Configuration where
         <$> optionalField "polite" "Whether to be polite"
         <*> optionalField "greeting" "What to say when greeting"
 
--- Get the configuration based.
+-- | Get the configuration
+--
 -- We use the flags and environment because they can contain information to override where to look for the configuration files.
 -- We return a 'Maybe' because there may not be a configuration file.
 getConfiguration :: Flags -> Environment -> IO (Maybe Configuration)
@@ -171,15 +211,19 @@ getConfiguration Flags {..} Environment {..} =
       afp <- resolveFile' cf
       YamlParse.readConfigFile afp
 
--- Where to get the configuration file by default.
--- This uses the XDG base directory specifictation: https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
+-- | Where to get the configuration file by default.
+--
+-- This uses the XDG base directory specifictation:
+-- https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
 defaultConfigFile :: IO (Path Abs File)
 defaultConfigFile = do
   xdgConfigDir <- getXdgDir XdgConfig (Just [reldir|optparse-template|])
   resolveFile xdgConfigDir "config.yaml"
 
--- What we find in the configuration variable.
+-- | What we find in the configuration variable.
+--
 -- Do nothing clever here, just represent the relevant parts of the environment.
+-- For example, use 'Text', not 'SqliteConfig'.
 data Environment
   = Environment
       { envConfigFile :: Maybe FilePath,
@@ -191,9 +235,10 @@ data Environment
 getEnvironment :: IO Environment
 getEnvironment = Env.parse (Env.header "Environment") environmentParser
 
+-- | The 'envparse' parser for the 'Environment'
 environmentParser :: Env.Parser Env.Error Environment
 environmentParser =
-  Env.prefixed "INTRAY_" $
+  Env.prefixed "HELLO_WORLD_" $
     Environment
       <$> Env.var (fmap Just . Env.str) "CONFIG_FILE" (mE <> Env.help "Config file")
       <*> Env.var (fmap Just . Env.auto) "POLITE" (mE <> Env.help "Whether to be polite")
@@ -201,21 +246,14 @@ environmentParser =
   where
     mE = Env.def Nothing <> Env.keep
 
--- The combination of a command with its specific flags and the flags for all commands
+-- | The combination of a command with its specific flags and the flags for all commands
 data Arguments
   = Arguments Command Flags
   deriving (Show, Eq, Generic)
 
--- Get the command-line arguments
+-- | Get the command-line arguments
 getArguments :: IO OptParse.Arguments
-getArguments = do
-  args <- System.getArgs
-  let result = runArgumentsParser args
-  OptParse.handleParseResult result
-
--- The pure version of the argument parsing, to be used in testing
-runArgumentsParser :: [String] -> OptParse.ParserResult Arguments
-runArgumentsParser = OptParse.execParserPure prefs_ argParser
+getArguments = customExecParser prefs_ argParser
 
 prefs_ :: OptParse.ParserPrefs
 prefs_ =
@@ -225,6 +263,7 @@ prefs_ =
       OptParse.prefShowHelpOnEmpty = True
     }
 
+-- | The @optparse-applicative@ parser for 'Arguments'
 argParser :: OptParse.ParserInfo Arguments
 argParser =
   OptParse.info
@@ -243,7 +282,7 @@ argParser =
 parseArgs :: OptParse.Parser Arguments
 parseArgs = Arguments <$> parseCommand <*> parseFlags
 
--- A sum type for the commands and their specific arguments
+-- | A sum type for the commands and their specific arguments
 data Command
   = CommandGreet GreetArgs
   deriving (Show, Eq, Generic)
@@ -255,14 +294,14 @@ parseCommand =
       [ OptParse.command "greet" $ CommandGreet <$> parseCommandGreet
       ]
 
--- The arguments specifically for the greet command
+-- | One type per command, for the command-specific arguments
 data GreetArgs
   = GreetArgs
       { greetArgGreeting :: Maybe Text
       }
   deriving (Show, Eq, Generic)
 
--- Don't worry about this code taking up a lot of space.
+-- | One 'optparse-applicative' parser for each command's flags
 parseCommandGreet :: OptParse.ParserInfo GreetArgs
 parseCommandGreet = OptParse.info parser modifier
   where
@@ -280,7 +319,7 @@ parseCommandGreet = OptParse.info parser modifier
             )
       )
 
--- The flags for each command
+-- | The flags that are common across commands.
 data Flags
   = Flags
       { flagConfigFile :: Maybe FilePath,
@@ -288,6 +327,7 @@ data Flags
       }
   deriving (Show, Eq, Generic)
 
+-- | The 'optparse-applicative' parser for the 'Flags'.
 parseFlags :: OptParse.Parser Flags
 parseFlags =
   Flags
