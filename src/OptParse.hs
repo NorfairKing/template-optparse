@@ -44,7 +44,7 @@
 -- * 'Environment': A product type for the relevant environment variables.
 -- * 'Configuration': A product type for the relevant parts of the configuration file.
 -- * 'Dispatch': A sum type for the commands, each with their own settings.
--- * 'Settings': A product type for the settings that are command across commands.
+-- * 'Settings': A product type for the settings that are common across commands.
 -- * 'Instructions': The 'Dispatch' and 'Settings' together.
 --
 -- === High-level workings
