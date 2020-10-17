@@ -253,7 +253,7 @@ data Arguments
   deriving (Show, Eq, Generic)
 
 -- | Get the command-line arguments
-getArguments :: IO OptParse.Arguments
+getArguments :: IO Arguments
 getArguments = customExecParser prefs_ argParser
 
 -- | The 'optparse-applicative' parsing preferences
