@@ -79,8 +79,6 @@
 --
 -- Continue reading in the code inline for more detailed instructions.
 --
--- You can see an example of option parsing according to this template at https://github.com/NorfairKing/intray/blob/master/intray-cli/src/Intray/Cli/OptParse.hs
---
 -- If you have any trouble, you can contact @syd@ at @cs-syd@ dot @eu@ for support.
 module OptParse
   ( -- * Interface
