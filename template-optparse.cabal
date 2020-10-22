@@ -14,6 +14,7 @@ build-type:     Simple
 library
   exposed-modules:
       OptParse
+      OptParseOneCommand
   other-modules:
       Paths_template_optparse
   hs-source-dirs:
@@ -34,6 +35,7 @@ test-suite template-optparse-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      OptParseOneCommandSpec
       OptParseSpec
       Paths_template_optparse
   hs-source-dirs:

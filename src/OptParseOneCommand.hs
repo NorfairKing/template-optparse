@@ -4,9 +4,9 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeApplications #-}
 
--- | = Optparse Template
+-- | = Optparse Template for a single command
 --
--- This is a template implementation of commands, flags, options, environment variable and configuration file parsing according to best practices.
+-- This is a template implementation of flags, options, environment variable and configuration file parsing according to best practices.
 -- To use this template, follow the instructions below and delete anything you do not need.
 --
 -- == License
@@ -32,49 +32,41 @@
 --
 -- In what follows, I will use this terminology:
 --
--- * Commands, Flags, Options: Whatever you put after the command on the command-line.
+-- * Flags, Options: Whatever you put after the command on the command-line.
 -- * Environment: Environment variables
 -- * Configuration: Whatever you find in the configuration file
 --
 -- For the purposes of this code, we use the following types:
 --
--- * 'Command': A sum type for the commands, each with their own flags and options.
--- * 'Flags': A product type for the flags and options that are common across commands.
--- * 'Arguments': The 'Command' and 'Flags' together.
+-- * 'Flags': A product type for the flags and options that you specify on the command-line.
 -- * 'Environment': A product type for the relevant environment variables.
 -- * 'Configuration': A product type for the relevant parts of the configuration file.
--- * 'Dispatch': A sum type for the commands, each with their own settings.
--- * 'Settings': A product type for the settings that are common across commands.
--- * 'Instructions': The 'Dispatch' and 'Settings' together.
+-- * 'Settings': A product type for the settings. This is what your program will use.
 --
 -- === High-level workings
 --
--- The gathering of the 'Instructions' happens in two stages.
+-- The gathering of the 'Settings' happens in two stages.
 --
--- In the first stage, the 'Arguments', 'Environment' and 'Configuration' values are gathered from their respective places.
+-- In the first stage, the 'Flags', 'Environment' and 'Configuration' values are gathered from their respective places.
 -- At this point, these types should represent what is found, without any processing or validation.
 --
--- In the second stage, in the `combineToInstructions` function, all these variables are combined together to produce the 'Instructions'.
+-- In the second stage, in the 'combineToSettings' function, all these variables are combined together to produce the 'Settings'.
 -- It is in this phase that we do processing, validation and even 'System.Exit.die' if necessary.
 --
 -- === Included Example
 --
--- This template comes with an example implementation for the 'OptParse' module for a hello world program that has one command: greet.
--- This command accepts a '--greeting' option, a 'HELLO_WORLD_GREETING' environment variable, or a 'greeting' field in the configuration file, to specify what to say when greeting the user.
--- The program also accepts  a '--polite' flag, a 'HELLO_WORLD_POLITE' environment variable, or a 'polite' field in the configuration file, to specify whether or not to be polite when greeting the user.
--- The greeting setting works for the 'greet' command only while the politeness setting works across commands.
+-- This template comes with an example implementation for the 'OptParse' module for web server.
+-- It accepts a port setting on in all three ways.
 --
 -- === 'FilePath' Example
 --
--- As an example, suppose our program uses a cache file for its 'compute' command.
+-- As an example, suppose our program uses a cache file as part of the server
 --
--- 1. Have a constructor for the 'compute' command in the 'Command' sum type: 'CommandCompute'
--- 2. Add a 'ComputeArgs' type that contains a 'commandFlagCacheFile :: Maybe FilePath' field to indicate that the user may specify this file on the command-line.
--- 3. Add a field to the 'Environment' type to indicate that the user may specify this file in an environment variable.
--- 4. Add a field to the 'Configuration' type to indicate that the user may specify this file in the configuration file as well.
--- 5. Have a constructor for the 'compute' dispatch in the 'Dispatch' sum type: 'DispatchCompute'.
--- 6. Add a 'ComputeSettings' type that contains a 'computeSettingCacheFile :: Path Abs File' field that your program will use.
--- 7. Combine the all three in the 'combineToInstructions' function.
+-- 1. Add a field to the 'Flags' type to indicate that the user may specify this file on the command-line.
+-- 2. Add a field to the 'Environment' type to indicate that the user may specify this file in an environment variable.
+-- 3. Add a field to the 'Configuration' type to indicate that the user may specify this file in the configuration file as well.
+-- 4. Add a field to the 'Settings' type that your program will use.
+-- 5. Combine the all three in the 'combineToSettings' function.
 --
 --
 -- === Further instructions and support
@@ -82,26 +74,17 @@
 -- Continue reading in the code inline for more detailed instructions.
 --
 -- If you have any trouble, you can contact @syd@ at @cs-syd@ dot @eu@ for support.
-module OptParse
+module OptParseOneCommand
   ( -- * Interface
-    getInstructions,
-    Instructions (..),
-    Dispatch (..),
-    GreetSettings (..),
+    getSettings,
     Settings (..),
 
     -- ** Exposed for testing
-    combineToInstructions,
-    getArguments,
+    combineToSettings,
+    getFlags,
     prefs_,
-    argParser,
-    parseArgs,
-    parseCommand,
-    parseCommandGreet,
+    flagsParser,
     parseFlags,
-    Arguments (..),
-    Command (..),
-    GreetArgs (..),
     Flags (..),
     getEnvironment,
     environmentParser,
@@ -114,7 +97,6 @@ where
 
 import Control.Applicative
 import Data.Maybe
-import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Yaml
 import qualified Env
@@ -125,53 +107,29 @@ import Path
 import Path.IO
 import YamlParse.Applicative as YamlParse
 
-data Instructions
-  = Instructions Dispatch Settings
-  deriving (Show, Eq, Generic)
-
-getInstructions :: IO Instructions
-getInstructions = do
-  args@(Arguments _ flags) <- getArguments
+getSettings :: IO Settings
+getSettings = do
+  flags <- getFlags
   env <- getEnvironment
   config <- getConfiguration flags env
-  combineToInstructions args env config
+  combineToSettings flags env config
 
--- | A product type for the settings that are common across commands
+-- | A product type for the settings that your program will use
 data Settings
   = Settings
-      { settingPolite :: Bool
-      }
-  deriving (Show, Eq, Generic)
-
--- | A sum type for the commands and their specific settings
-data Dispatch
-  = DispatchGreet GreetSettings
-  deriving (Show, Eq, Generic)
-
--- | One type per command for its settings.
--- You can omit this if the command does not need specific settings.
-data GreetSettings
-  = GreetSettings
-      { greetSettingGreeting :: Maybe Text
+      { settingPort :: Int
       }
   deriving (Show, Eq, Generic)
 
 -- | Combine everything to instructions
-combineToInstructions :: Arguments -> Environment -> Maybe Configuration -> IO Instructions
-combineToInstructions (Arguments cmd Flags {..}) Environment {..} mConf = do
+combineToSettings :: Flags -> Environment -> Maybe Configuration -> IO Settings
+combineToSettings Flags {..} Environment {..} mConf = do
   -- This is a typical way to combine a setting.
   --
   -- We choose the first of the supplied flag, environment variable or configuration field,
   -- or default value if none of the those were supplied.
-  let settingPolite = fromMaybe True $ flagPolite <|> envPolite <|> mc configPolite
-  let sets = Settings {..}
-  disp <-
-    -- Resolve the command-specific settings for each command
-    case cmd of
-      CommandGreet GreetArgs {..} -> do
-        let greetSettingGreeting = greetArgGreeting <|> envGreeting <|> mc configGreeting
-        pure $ DispatchGreet GreetSettings {..}
-  pure $ Instructions disp sets
+  let settingPort = fromMaybe 8000 $ flagPort <|> envPort <|> mc configPort
+  pure Settings {..}
   where
     mc :: (Configuration -> Maybe a) -> Maybe a
     mc f = mConf >>= f
@@ -184,8 +142,7 @@ combineToInstructions (Arguments cmd Flags {..}) Environment {..} mConf = do
 -- Use 'YamlParse.readConfigFile' or 'YamlParse.readFirstConfigFile' to read a configuration.
 data Configuration
   = Configuration
-      { configPolite :: Maybe Bool,
-        configGreeting :: Maybe Text
+      { configPort :: Maybe Int
       }
   deriving (Show, Eq, Generic)
 
@@ -197,8 +154,7 @@ instance YamlSchema Configuration where
   yamlSchema =
     objectParser "Configuration" $
       Configuration
-        <$> optionalField "polite" "Whether to be polite"
-        <*> optionalField "greeting" "What to say when greeting"
+        <$> optionalField "port" "The port to serve requests on"
 
 -- | Get the configuration
 --
@@ -228,8 +184,7 @@ defaultConfigFile = do
 data Environment
   = Environment
       { envConfigFile :: Maybe FilePath,
-        envPolite :: Maybe Bool,
-        envGreeting :: Maybe Text
+        envPort :: Maybe Int
       }
   deriving (Show, Eq, Generic)
 
@@ -242,19 +197,13 @@ environmentParser =
   Env.prefixed "HELLO_WORLD_" $
     Environment
       <$> Env.var (fmap Just . Env.str) "CONFIG_FILE" (mE <> Env.help "Config file")
-      <*> Env.var (fmap Just . Env.auto) "POLITE" (mE <> Env.help "Whether to be polite")
-      <*> Env.var (fmap Just . Env.str) "GREETING" (mE <> Env.help "What to say when greeting")
+      <*> Env.var (fmap Just . Env.auto) "PORT" (mE <> Env.help "The port to serve requests on")
   where
     mE = Env.def Nothing <> Env.keep
 
--- | The combination of a command with its specific flags and the flags for all commands
-data Arguments
-  = Arguments Command Flags
-  deriving (Show, Eq, Generic)
-
--- | Get the command-line arguments
-getArguments :: IO Arguments
-getArguments = customExecParser prefs_ argParser
+-- | Get the command-line flags
+getFlags :: IO Flags
+getFlags = customExecParser prefs_ flagsParser
 
 -- | The 'optparse-applicative' parsing preferences
 prefs_ :: OptParse.ParserPrefs
@@ -265,11 +214,11 @@ prefs_ =
       OptParse.prefShowHelpOnEmpty = True
     }
 
--- | The @optparse-applicative@ parser for 'Arguments'
-argParser :: OptParse.ParserInfo Arguments
-argParser =
+-- | The @optparse-applicative@ parser for 'Flags'
+flagsParser :: OptParse.ParserInfo Flags
+flagsParser =
   OptParse.info
-    (OptParse.helper <*> parseArgs)
+    (OptParse.helper <*> parseFlags)
     (OptParse.fullDesc <> OptParse.footerDoc (Just $ OptParse.string footerStr))
   where
     -- Show the variables from the environment that we parse and the config file format
@@ -281,51 +230,11 @@ argParser =
           T.unpack (YamlParse.prettyColourisedSchemaDoc @Configuration)
         ]
 
-parseArgs :: OptParse.Parser Arguments
-parseArgs = Arguments <$> parseCommand <*> parseFlags
-
--- | A sum type for the commands and their specific arguments
-data Command
-  = CommandGreet GreetArgs
-  deriving (Show, Eq, Generic)
-
-parseCommand :: OptParse.Parser Command
-parseCommand =
-  OptParse.hsubparser $
-    mconcat
-      [ OptParse.command "greet" $ CommandGreet <$> parseCommandGreet
-      ]
-
--- | One type per command, for the command-specific arguments
-data GreetArgs
-  = GreetArgs
-      { greetArgGreeting :: Maybe Text
-      }
-  deriving (Show, Eq, Generic)
-
--- | One 'optparse-applicative' parser for each command's flags
-parseCommandGreet :: OptParse.ParserInfo GreetArgs
-parseCommandGreet = OptParse.info parser modifier
-  where
-    modifier = OptParse.fullDesc <> OptParse.progDesc "Greet the user"
-    parser =
-      ( GreetArgs
-          <$> optional
-            ( strOption
-                ( mconcat
-                    [ long "greeting",
-                      help "What to say when greeting",
-                      metavar "GREETING"
-                    ]
-                )
-            )
-      )
-
 -- | The flags that are common across commands.
 data Flags
   = Flags
       { flagConfigFile :: Maybe FilePath,
-        flagPolite :: Maybe Bool
+        flagPort :: Maybe Int
       }
   deriving (Show, Eq, Generic)
 
@@ -343,10 +252,11 @@ parseFlags =
           )
       )
     <*> optional
-      ( switch
+      ( option
+          auto
           ( mconcat
-              [ long "polite",
-                help "Whether to be polite"
+              [ long "port",
+                help "The port to serve requests on"
               ]
           )
       )
