@@ -58,9 +58,9 @@ spec = do
                            )
                        )
   describe "Environment"
-    $ it "parses HELLO_WORLD_GREETING and HELLO_WORLD_POLITE correctly"
+    $ it "parses FOOBAR_GREETING and FOOBAR_POLITE correctly"
     $ do
-      let env = [("HELLO_WORLD_GREETING", "hello"), ("HELLO_WORLD_POLITE", "True")]
+      let env = [("FOOBAR_GREETING", "hello"), ("FOOBAR_POLITE", "True")]
       case Env.parsePure environmentParser env of
         Left err -> expectationFailure $ unlines ["Failed to parse environment variables: ", show err]
         Right e ->
