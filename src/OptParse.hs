@@ -337,7 +337,7 @@ parseFlags =
       ( strOption
           ( mconcat
               [ long "config-file",
-                help "Give the path to an altenative config file",
+                help "Path to an altenative config file",
                 metavar "FILEPATH"
               ]
           )
