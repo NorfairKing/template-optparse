@@ -121,7 +121,7 @@ data Settings
       }
   deriving (Show, Eq, Generic)
 
--- | Combine everything to instructions
+-- | Combine everything to 'Settings'
 combineToSettings :: Flags -> Environment -> Maybe Configuration -> IO Settings
 combineToSettings Flags {..} Environment {..} mConf = do
   -- This is a typical way to combine a setting.
