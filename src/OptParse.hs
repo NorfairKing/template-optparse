@@ -60,8 +60,8 @@
 -- === Included Example
 --
 -- This template comes with an example implementation for the 'OptParse' module for a hello world program that has one command: greet.
--- This command accepts a '--greeting' option, a 'FOOBAR_GREETING' environment variable, or a 'greeting' field in the configuration file, to specify what to say when greeting the user.
--- The program also accepts  a '--polite' flag, a 'FOOBAR_POLITE' environment variable, or a 'polite' field in the configuration file, to specify whether or not to be polite when greeting the user.
+-- This command accepts a '--greeting' option, a 'FOO_BAR_GREETING' environment variable, or a 'greeting' field in the configuration file, to specify what to say when greeting the user.
+-- The program also accepts  a '--polite' flag, a 'FOO_BAR_POLITE' environment variable, or a 'polite' field in the configuration file, to specify whether or not to be polite when greeting the user.
 -- The greeting setting works for the 'greet' command only while the politeness setting works across commands.
 --
 -- === 'FilePath' Example
@@ -239,7 +239,7 @@ getEnvironment = Env.parse (Env.header "Environment") environmentParser
 -- | The 'envparse' parser for the 'Environment'
 environmentParser :: Env.Parser Env.Error Environment
 environmentParser =
-  Env.prefixed "FOOBAR_" $
+  Env.prefixed "FOO_BAR_" $
     Environment
       <$> Env.var (fmap Just . Env.str) "CONFIG_FILE" (mE <> Env.help "Config file")
       <*> Env.var (fmap Just . Env.auto) "POLITE" (mE <> Env.help "Whether to be polite")

@@ -21,5 +21,11 @@ For the multi-command version, use the `src/OptParse.hs` and `test/OptParseSpec.
 Otherwise, use the `src/OptParseOneCommand.hs` and `test/OptParseOneCommandSpec.hs` files.
 Copy the modules into your project and follow instructions inside.
 
+You can use [template-filler](https://github.com/NorfairKing/template-filler) to copy the template into your project, like this:
+
+```
+template-filler --source /path/to/the/OptParse.hs --destination /path/to/your/homeless/shelter/OptParse.hs --find FooBar --replace HomelessShelter
+```
+
 Run `stack haddock` to read the instructions in haddock form.
 Otherwise, continue reading in [the source](src/OptParse.hs) and [the tests](test/OptParseSpec.hs).

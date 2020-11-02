@@ -194,7 +194,7 @@ getEnvironment = Env.parse (Env.header "Environment") environmentParser
 -- | The 'envparse' parser for the 'Environment'
 environmentParser :: Env.Parser Env.Error Environment
 environmentParser =
-  Env.prefixed "FOOBAR_" $
+  Env.prefixed "FOO_BAR_" $
     Environment
       <$> Env.var (fmap Just . Env.str) "CONFIG_FILE" (mE <> Env.help "Config file")
       <*> Env.var (fmap Just . Env.auto) "PORT" (mE <> Env.help "The port to serve requests on")

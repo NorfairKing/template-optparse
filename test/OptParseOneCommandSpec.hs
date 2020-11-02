@@ -50,9 +50,9 @@ spec = do
                            }
                        )
   describe "Environment"
-    $ it "parses FOOBAR_PORT correctly"
+    $ it "parses FOO_BAR_PORT correctly"
     $ do
-      let env = [("FOOBAR_PORT", "3000")]
+      let env = [("FOO_BAR_PORT", "3000")]
       case Env.parsePure environmentParser env of
         Left err -> expectationFailure $ unlines ["Failed to parse environment variables: ", show err]
         Right e ->
