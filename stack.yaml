@@ -1,4 +1,4 @@
-snapshot: lts-15.15
+snapshot: lts-16.12
 packages: 
 - .
 extra-deps:
