@@ -129,7 +129,7 @@ import Path
 import Path.IO
 
 data Instructions
-  = Instructions Dispatch Settings
+  = Instructions !Dispatch !Settings
   deriving (Show, Eq, Generic)
 
 getInstructions :: IO Instructions
@@ -141,19 +141,19 @@ getInstructions = do
 
 -- | A product type for the settings that are common across commands
 data Settings = Settings
-  { settingPolite :: Bool
+  { settingPolite :: !Bool
   }
   deriving (Show, Eq, Generic)
 
 -- | A sum type for the commands and their specific settings
 data Dispatch
-  = DispatchGreet GreetSettings
+  = DispatchGreet !GreetSettings
   deriving (Show, Eq, Generic)
 
 -- | One type per command for its settings.
 -- You can omit this if the command does not need specific settings.
 data GreetSettings = GreetSettings
-  { greetSettingGreeting :: Maybe Text
+  { greetSettingGreeting :: !(Maybe Text)
   }
   deriving (Show, Eq, Generic)
 
@@ -224,9 +224,9 @@ defaultConfigFile = do
 -- Do nothing clever here, just represent the relevant parts of the environment.
 -- For example, use 'Text', not 'SqliteConfig'.
 data Environment = Environment
-  { envConfigFile :: Maybe FilePath,
-    envPolite :: Maybe Bool,
-    envGreeting :: Maybe Text
+  { envConfigFile :: !(Maybe FilePath),
+    envPolite :: !(Maybe Bool),
+    envGreeting :: !(Maybe Text)
   }
   deriving (Show, Eq, Generic)
 
@@ -246,7 +246,7 @@ environmentParser =
 
 -- | The combination of a command with its specific flags and the flags for all commands
 data Arguments
-  = Arguments Command Flags
+  = Arguments !Command !Flags
   deriving (Show, Eq, Generic)
 
 -- | Get the command-line arguments
@@ -283,7 +283,7 @@ parseArgs = Arguments <$> parseCommand <*> parseFlags
 
 -- | A sum type for the commands and their specific arguments
 data Command
-  = CommandGreet GreetArgs
+  = CommandGreet !GreetArgs
   deriving (Show, Eq, Generic)
 
 parseCommand :: OptParse.Parser Command
@@ -295,7 +295,7 @@ parseCommand =
 
 -- | One type per command, for the command-specific arguments
 data GreetArgs = GreetArgs
-  { greetArgGreeting :: Maybe Text
+  { greetArgGreeting :: !(Maybe Text)
   }
   deriving (Show, Eq, Generic)
 
@@ -319,8 +319,8 @@ parseCommandGreet = OptParse.info parser modifier
 
 -- | The flags that are common across commands.
 data Flags = Flags
-  { flagConfigFile :: Maybe FilePath,
-    flagPolite :: Maybe Bool
+  { flagConfigFile :: !(Maybe FilePath),
+    flagPolite :: !(Maybe Bool)
   }
   deriving (Show, Eq, Generic)
 

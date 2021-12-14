@@ -119,7 +119,7 @@ getSettings = do
 
 -- | A product type for the settings that your program will use
 data Settings = Settings
-  { settingPort :: Int
+  { settingPort :: !Int
   }
   deriving (Show, Eq, Generic)
 
@@ -141,9 +141,9 @@ combineToSettings Flags {..} Environment {..} mConf = do
 -- Do nothing clever here, just represent the configuration file.
 -- For example, use 'Maybe FilePath', not 'Path Abs File'.
 --
--- Use 'YamlParse.readConfigFile' or 'YamlParse.readFirstConfigFile' to read a configuration.
+-- Use 'readYamlConfigFile' or 'readFirstYamlConfigFile' to read a configuration.
 data Configuration = Configuration
-  { configPort :: Maybe Int
+  { configPort :: !(Maybe Int)
   }
   deriving stock (Show, Eq, Generic)
   deriving (FromJSON, ToJSON) via (Autodocodec Configuration)
@@ -181,8 +181,8 @@ defaultConfigFile = do
 -- Do nothing clever here, just represent the relevant parts of the environment.
 -- For example, use 'Text', not 'SqliteConfig'.
 data Environment = Environment
-  { envConfigFile :: Maybe FilePath,
-    envPort :: Maybe Int
+  { envConfigFile :: !(Maybe FilePath),
+    envPort :: !(Maybe Int)
   }
   deriving (Show, Eq, Generic)
 
@@ -230,8 +230,8 @@ flagsParser =
 
 -- | The flags that are common across commands.
 data Flags = Flags
-  { flagConfigFile :: Maybe FilePath,
-    flagPort :: Maybe Int
+  { flagConfigFile :: !(Maybe FilePath),
+    flagPort :: !(Maybe Int)
   }
   deriving (Show, Eq, Generic)
 
