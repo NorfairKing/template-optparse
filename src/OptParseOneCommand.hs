@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -15,7 +16,7 @@
 --
 -- See https://template.cs-syd.eu/template/NorfairKing/template-optparse for more information.
 --
--- Copyright (c) 2020 Tom Sydney Kerckhove.
+-- Copyright (c) 2020-2022 Tom Sydney Kerckhove.
 --
 -- All Rights Reserved.
 --
@@ -95,17 +96,19 @@ module OptParseOneCommand
   )
 where
 
+import Autodocodec
+import Autodocodec.Yaml
 import Control.Applicative
 import Data.Maybe
 import qualified Data.Text as T
-import Data.Yaml
+import qualified Data.Text.Encoding as TE
+import Data.Yaml (FromJSON, ToJSON)
 import qualified Env
 import GHC.Generics (Generic)
 import Options.Applicative as OptParse
 import qualified Options.Applicative.Help as OptParse (string)
 import Path
 import Path.IO
-import YamlParse.Applicative as YamlParse
 
 getSettings :: IO Settings
 getSettings = do
@@ -115,10 +118,9 @@ getSettings = do
   combineToSettings flags env config
 
 -- | A product type for the settings that your program will use
-data Settings
-  = Settings
-      { settingPort :: Int
-      }
+data Settings = Settings
+  { settingPort :: Int
+  }
   deriving (Show, Eq, Generic)
 
 -- | Combine everything to 'Settings'
@@ -140,21 +142,18 @@ combineToSettings Flags {..} Environment {..} mConf = do
 -- For example, use 'Maybe FilePath', not 'Path Abs File'.
 --
 -- Use 'YamlParse.readConfigFile' or 'YamlParse.readFirstConfigFile' to read a configuration.
-data Configuration
-  = Configuration
-      { configPort :: Maybe Int
-      }
-  deriving (Show, Eq, Generic)
+data Configuration = Configuration
+  { configPort :: Maybe Int
+  }
+  deriving stock (Show, Eq, Generic)
+  deriving (FromJSON, ToJSON) via (Autodocodec Configuration)
 
-instance FromJSON Configuration where
-  parseJSON = viaYamlSchema
-
--- | We use 'yamlparse-applicative' for parsing a YAML config.
-instance YamlSchema Configuration where
-  yamlSchema =
-    objectParser "Configuration" $
+-- | We use @autodocodec@ for parsing a YAML config.
+instance HasCodec Configuration where
+  codec =
+    object "Configuration" $
       Configuration
-        <$> optionalField "port" "The port to serve requests on"
+        <$> optionalField "port" "The port to serve requests on" .= configPort
 
 -- | Get the configuration
 --
@@ -163,10 +162,10 @@ instance YamlSchema Configuration where
 getConfiguration :: Flags -> Environment -> IO (Maybe Configuration)
 getConfiguration Flags {..} Environment {..} =
   case flagConfigFile <|> envConfigFile of
-    Nothing -> defaultConfigFile >>= YamlParse.readConfigFile
+    Nothing -> defaultConfigFile >>= readYamlConfigFile
     Just cf -> do
       afp <- resolveFile' cf
-      YamlParse.readConfigFile afp
+      readYamlConfigFile afp
 
 -- | Where to get the configuration file by default.
 --
@@ -181,11 +180,10 @@ defaultConfigFile = do
 --
 -- Do nothing clever here, just represent the relevant parts of the environment.
 -- For example, use 'Text', not 'SqliteConfig'.
-data Environment
-  = Environment
-      { envConfigFile :: Maybe FilePath,
-        envPort :: Maybe Int
-      }
+data Environment = Environment
+  { envConfigFile :: Maybe FilePath,
+    envPort :: Maybe Int
+  }
   deriving (Show, Eq, Generic)
 
 getEnvironment :: IO Environment
@@ -227,15 +225,14 @@ flagsParser =
         [ Env.helpDoc environmentParser,
           "",
           "Configuration file format:",
-          T.unpack (YamlParse.prettyColourisedSchemaDoc @Configuration)
+          T.unpack (TE.decodeUtf8 (renderColouredSchemaViaCodec @Configuration))
         ]
 
 -- | The flags that are common across commands.
-data Flags
-  = Flags
-      { flagConfigFile :: Maybe FilePath,
-        flagPort :: Maybe Int
-      }
+data Flags = Flags
+  { flagConfigFile :: Maybe FilePath,
+    flagPort :: Maybe Int
+  }
   deriving (Show, Eq, Generic)
 
 -- | The 'optparse-applicative' parser for the 'Flags'.

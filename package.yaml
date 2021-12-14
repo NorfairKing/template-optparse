@@ -1,6 +1,6 @@
 name: template-optparse
 version: '0.0.0.0'
-copyright: ! 'Copyright: (c) 2020 Tom Sydney Kerckhove'
+copyright: ! 'Copyright: (c) 2020-2022 Tom Sydney Kerckhove'
 license: AllRightsReserved
   
 dependencies:
@@ -16,7 +16,8 @@ library:
   - path-io
   - text
   - yaml
-  - yamlparse-applicative
+  - autodocodec
+  - autodocodec-yaml
 
 tests:
   template-optparse-test:
