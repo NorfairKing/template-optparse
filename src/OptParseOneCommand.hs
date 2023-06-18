@@ -152,7 +152,8 @@ instance HasCodec Configuration where
   codec =
     object "Configuration" $
       Configuration
-        <$> optionalField "port" "The port to serve requests on" .= configPort
+        <$> optionalField "port" "The port to serve requests on"
+        .= configPort
 
 -- | Get the configuration
 --
@@ -193,10 +194,8 @@ environmentParser :: Env.Parser Env.Error Environment
 environmentParser =
   Env.prefixed "FOO_BAR_" $
     Environment
-      <$> Env.var (fmap Just . Env.str) "CONFIG_FILE" (mE <> Env.help "Config file")
-      <*> Env.var (fmap Just . Env.auto) "PORT" (mE <> Env.help "The port to serve requests on")
-  where
-    mE = Env.def Nothing <> Env.keep
+      <$> optional (Env.var Env.str "CONFIG_FILE" (Env.help "Config file"))
+      <*> optional (Env.var Env.auto "PORT" (Env.help "The port to serve requests on"))
 
 -- | Get the command-line flags
 getFlags :: IO Flags

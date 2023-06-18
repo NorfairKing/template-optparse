@@ -7,7 +7,7 @@ This is a template implementation of commands, flags, options, environment varia
 This template is **not** free to use.
 See https://template.cs-syd.eu/template/NorfairKing/template-optparse for more information.
 
-Copyright (c) 2020 Tom Sydney Kerckhove.
+Copyright (c) 2020-2023 Tom Sydney Kerckhove.
 
 All Rights Reserved.
 

@@ -194,8 +194,10 @@ instance HasCodec Configuration where
   codec =
     object "Configuration" $
       Configuration
-        <$> optionalField "polite" "Whether to be polite" .= configPolite
-        <*> optionalField "greeting" "What to say when greeting" .= configGreeting
+        <$> optionalField "polite" "Whether to be polite"
+        .= configPolite
+        <*> optionalField "greeting" "What to say when greeting"
+        .= configGreeting
 
 -- | Get the configuration
 --
@@ -237,11 +239,9 @@ environmentParser :: Env.Parser Env.Error Environment
 environmentParser =
   Env.prefixed "FOO_BAR_" $
     Environment
-      <$> Env.var (fmap Just . Env.str) "CONFIG_FILE" (mE <> Env.help "Config file")
-      <*> Env.var (fmap Just . Env.auto) "POLITE" (mE <> Env.help "Whether to be polite")
-      <*> Env.var (fmap Just . Env.str) "GREETING" (mE <> Env.help "What to say when greeting")
-  where
-    mE = Env.def Nothing <> Env.keep
+      <$> optional (Env.var Env.str "CONFIG_FILE" (Env.help "Config file"))
+      <*> optional (Env.var Env.auto "POLITE" (Env.help "Whether to be polite"))
+      <*> optional (Env.var Env.str "GREETING" (Env.help "What to say when greeting"))
 
 -- | The combination of a command with its specific flags and the flags for all commands
 data Arguments

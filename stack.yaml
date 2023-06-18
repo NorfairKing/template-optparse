@@ -1,9 +1,3 @@
-snapshot: lts-19.32
+snapshot: lts-20.25
 packages: 
 - .
-extra-deps:
-- validity-aeson-0.2.0.5@sha256:e4baa2ad9deaf2c903e1ef8e55e9977410ed867c9e46fa14427e8f6ef8b4dc2e,1402
-- autodocodec-0.2.0.0@sha256:435fde13e95ba55dd3b2e4195b00a49d4ddb6e4ce64a15c5868c40317fc33e21,1652
-- autodocodec-schema-0.1.0.2@sha256:1d1f9fa85ab111f622d59eb280c42129d2ad7c6a3c207c50ca3858a9e45267e7,1094
-- autodocodec-yaml-0.2.0.2@sha256:8f9981085572af2aa827e9fa92881d8cabd2a72e407dbd2e8efb06ea96cc34fa,1211
-- safe-coloured-text-0.2.0.1@sha256:cb01d89f7c1ec009f8341c5b83c880a3798928beca3254a47d161d6ef0fb0165,1104
