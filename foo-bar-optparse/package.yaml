@@ -1,6 +1,6 @@
 name: template-optparse
 version: '0.0.0.0'
-copyright: ! 'Copyright: (c) 2020-2022 Tom Sydney Kerckhove'
+copyright: ! 'Copyright: (c) 2020-2023 Tom Sydney Kerckhove'
 license: AllRightsReserved
   
 dependencies:

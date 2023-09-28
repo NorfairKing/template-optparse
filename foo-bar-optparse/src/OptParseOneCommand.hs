@@ -153,7 +153,7 @@ instance HasCodec Configuration where
     object "Configuration" $
       Configuration
         <$> optionalField "port" "The port to serve requests on"
-        .= configPort
+          .= configPort
 
 -- | Get the configuration
 --
