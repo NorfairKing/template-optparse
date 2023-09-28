@@ -7,6 +7,8 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs?ref=nixos-23.05";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
+    dekking.url = "github:NorfairKing/dekking";
+    dekking.flake = false;
   };
 
   outputs =
@@ -14,6 +16,7 @@
     , nixpkgs
     , home-manager
     , pre-commit-hooks
+    , dekking
     }:
     let
       system = "x86_64-linux";
@@ -22,6 +25,8 @@
         config.allowUnfree = true;
         overlays = [
           self.overlays.${system}
+          (import (dekking + "/nix/overlay.nix"))
+
         ];
       };
       pkgs = pkgsFor nixpkgs;
@@ -32,6 +37,12 @@
       checks.${system} = {
         release = self.packages.${system}.default;
         shell = self.devShells.${system}.default;
+        coverage-report = pkgs.dekking.makeCoverageReport {
+          name = "test-coverage-report";
+          packages = [
+            "foo-bar-optparse"
+          ];
+        };
         pre-commit = pre-commit-hooks.lib.${system}.run {
           src = ./.;
           hooks = {

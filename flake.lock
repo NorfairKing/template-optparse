@@ -1,5 +1,21 @@
 {
   "nodes": {
+    "dekking": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1694680694,
+        "narHash": "sha256-LON8AC76I28A7cyfuDwvX7/uMOKPNwkuS8Y/YyOXv2c=",
+        "owner": "NorfairKing",
+        "repo": "dekking",
+        "rev": "97875f0a6aa9ca659dfe3303d02dfdf94f56a36c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NorfairKing",
+        "repo": "dekking",
+        "type": "github"
+      }
+    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -160,6 +176,7 @@
     },
     "root": {
       "inputs": {
+        "dekking": "dekking",
         "home-manager": "home-manager",
         "nixpkgs": "nixpkgs_2",
         "pre-commit-hooks": "pre-commit-hooks"
