@@ -5,7 +5,7 @@
     extra-trusted-public-keys = "foobar.cachix.org-1:srabhQPgZR0EO+bOppsCWbesHOgk8ABakPL8D1h5wOU=";
   };
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs?ref=nixos-23.05";
+    nixpkgs.url = "github:NixOS/nixpkgs?ref=nixos-23.11";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
     dekking.url = "github:NorfairKing/dekking";
     dekking.flake = false;
@@ -14,7 +14,6 @@
   outputs =
     { self
     , nixpkgs
-    , home-manager
     , pre-commit-hooks
     , dekking
     }:
