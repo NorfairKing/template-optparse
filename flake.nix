@@ -7,6 +7,8 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs?ref=nixos-23.11";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
+    weeder-nix.url = "github:NorfairKing/weeder-nix";
+    weeder-nix.flake = false;
     dekking.url = "github:NorfairKing/dekking";
     dekking.flake = false;
   };
@@ -15,6 +17,7 @@
     { self
     , nixpkgs
     , pre-commit-hooks
+    , weeder-nix
     , dekking
     }:
     let
@@ -25,7 +28,7 @@
         overlays = [
           self.overlays.${system}
           (import (dekking + "/nix/overlay.nix"))
-
+          (import (weeder-nix + "/nix/overlay.nix"))
         ];
       };
       pkgs = pkgsFor nixpkgs;
@@ -38,9 +41,11 @@
         shell = self.devShells.${system}.default;
         coverage-report = pkgs.dekking.makeCoverageReport {
           name = "test-coverage-report";
-          packages = [
-            "foo-bar-optparse"
-          ];
+          packages = [ "foo-bar-optparse" ];
+        };
+        weeder-check = pkgs.weeder-nix.makeWeederCheck {
+          weederToml = ./weeder.toml;
+          packages = [ "foo-bar-optparse" ];
         };
         pre-commit = pre-commit-hooks.lib.${system}.run {
           src = ./.;

@@ -1,0 +1,11 @@
+unused-types = true
+type-class-roots = false
+roots = [
+  "^Main.main",
+  "OptParse.getInstructions",
+  "OptParseOneCommand.getSettings",
+  # Generated
+  "Paths_",
+]
+root-instances = [
+]

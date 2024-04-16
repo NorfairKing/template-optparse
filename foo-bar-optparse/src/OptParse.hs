@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
@@ -16,7 +15,7 @@
 --
 -- See https://template.cs-syd.eu/template/NorfairKing/template-optparse for more information.
 --
--- Copyright (c) 2020-2022 Tom Sydney Kerckhove.
+-- Copyright (c) 2020-2024 Tom Sydney Kerckhove.
 --
 -- All Rights Reserved.
 --
@@ -119,9 +118,8 @@ import Control.Applicative
 import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
-import Data.Yaml (FromJSON, ToJSON)
+import Data.Yaml (FromJSON)
 import qualified Env
-import GHC.Generics (Generic)
 import Options.Applicative as OptParse
 import qualified Options.Applicative.Help as OptParse (string)
 import Path
@@ -129,7 +127,6 @@ import Path.IO
 
 data Instructions
   = Instructions !Dispatch !Settings
-  deriving (Show, Eq, Generic)
 
 getInstructions :: IO Instructions
 getInstructions = do
@@ -142,19 +139,16 @@ getInstructions = do
 data Settings = Settings
   { settingPolite :: !Bool
   }
-  deriving (Show, Eq, Generic)
 
 -- | A sum type for the commands and their specific settings
 data Dispatch
   = DispatchGreet !GreetSettings
-  deriving (Show, Eq, Generic)
 
 -- | One type per command for its settings.
 -- You can omit this if the command does not need specific settings.
 data GreetSettings = GreetSettings
   { greetSettingGreeting :: !(Maybe Text)
   }
-  deriving (Show, Eq, Generic)
 
 -- | Combine everything to instructions
 combineToInstructions :: Arguments -> Environment -> Maybe Configuration -> IO Instructions
@@ -186,8 +180,8 @@ data Configuration = Configuration
   { configPolite :: !(Maybe Bool),
     configGreeting :: !(Maybe Text)
   }
-  deriving stock (Show, Eq, Generic)
-  deriving (FromJSON, ToJSON) via (Autodocodec Configuration)
+  deriving stock (Show, Eq)
+  deriving (FromJSON) via (Autodocodec Configuration)
 
 -- | We use @autodocodec@ for parsing a YAML config.
 instance HasCodec Configuration where
@@ -229,7 +223,7 @@ data Environment = Environment
     envPolite :: !(Maybe Bool),
     envGreeting :: !(Maybe Text)
   }
-  deriving (Show, Eq, Generic)
+  deriving (Show, Eq)
 
 getEnvironment :: IO Environment
 getEnvironment = Env.parse (Env.header "Environment") environmentParser
@@ -246,7 +240,7 @@ environmentParser =
 -- | The combination of a command with its specific flags and the flags for all commands
 data Arguments
   = Arguments !Command !Flags
-  deriving (Show, Eq, Generic)
+  deriving (Show, Eq)
 
 -- | Get the command-line arguments
 getArguments :: IO Arguments
@@ -283,7 +277,7 @@ parseArgs = Arguments <$> parseCommand <*> parseFlags
 -- | A sum type for the commands and their specific arguments
 data Command
   = CommandGreet !GreetArgs
-  deriving (Show, Eq, Generic)
+  deriving (Show, Eq)
 
 parseCommand :: OptParse.Parser Command
 parseCommand =
@@ -296,7 +290,7 @@ parseCommand =
 data GreetArgs = GreetArgs
   { greetArgGreeting :: !(Maybe Text)
   }
-  deriving (Show, Eq, Generic)
+  deriving (Show, Eq)
 
 -- | One 'optparse-applicative' parser for each command's flags
 parseCommandGreet :: OptParse.ParserInfo GreetArgs
@@ -320,7 +314,7 @@ data Flags = Flags
   { flagConfigFile :: !(Maybe FilePath),
     flagPolite :: !(Maybe Bool)
   }
-  deriving (Show, Eq, Generic)
+  deriving (Show, Eq)
 
 -- | The 'optparse-applicative' parser for the 'Flags'.
 parseFlags :: OptParse.Parser Flags

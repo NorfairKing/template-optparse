@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
@@ -16,7 +15,7 @@
 --
 -- See https://template.cs-syd.eu/template/NorfairKing/template-optparse for more information.
 --
--- Copyright (c) 2020-2022 Tom Sydney Kerckhove.
+-- Copyright (c) 2020-2024 Tom Sydney Kerckhove.
 --
 -- All Rights Reserved.
 --
@@ -101,9 +100,8 @@ import Autodocodec.Yaml
 import Control.Applicative
 import Data.Maybe
 import qualified Data.Text as T
-import Data.Yaml (FromJSON, ToJSON)
+import Data.Yaml (FromJSON)
 import qualified Env
-import GHC.Generics (Generic)
 import Options.Applicative as OptParse
 import qualified Options.Applicative.Help as OptParse (string)
 import Path
@@ -120,7 +118,6 @@ getSettings = do
 data Settings = Settings
   { settingPort :: !Int
   }
-  deriving (Show, Eq, Generic)
 
 -- | Combine everything to 'Settings'
 combineToSettings :: Flags -> Environment -> Maybe Configuration -> IO Settings
@@ -144,8 +141,8 @@ combineToSettings Flags {..} Environment {..} mConf = do
 data Configuration = Configuration
   { configPort :: !(Maybe Int)
   }
-  deriving stock (Show, Eq, Generic)
-  deriving (FromJSON, ToJSON) via (Autodocodec Configuration)
+  deriving stock (Show, Eq)
+  deriving (FromJSON) via (Autodocodec Configuration)
 
 -- | We use @autodocodec@ for parsing a YAML config.
 instance HasCodec Configuration where
@@ -184,7 +181,7 @@ data Environment = Environment
   { envConfigFile :: !(Maybe FilePath),
     envPort :: !(Maybe Int)
   }
-  deriving (Show, Eq, Generic)
+  deriving (Show, Eq)
 
 getEnvironment :: IO Environment
 getEnvironment = Env.parse (Env.header "Environment") environmentParser
@@ -231,7 +228,7 @@ data Flags = Flags
   { flagConfigFile :: !(Maybe FilePath),
     flagPort :: !(Maybe Int)
   }
-  deriving (Show, Eq, Generic)
+  deriving (Show, Eq)
 
 -- | The 'optparse-applicative' parser for the 'Flags'.
 parseFlags :: OptParse.Parser Flags
