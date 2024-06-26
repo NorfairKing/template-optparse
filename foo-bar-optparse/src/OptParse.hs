@@ -121,7 +121,7 @@ import qualified Data.Text as T
 import Data.Yaml (FromJSON)
 import qualified Env
 import Options.Applicative as OptParse
-import qualified Options.Applicative.Help as OptParse (string)
+import qualified Options.Applicative.Help as OptParse (pretty)
 import Path
 import Path.IO
 
@@ -260,7 +260,7 @@ argParser :: OptParse.ParserInfo Arguments
 argParser =
   OptParse.info
     (OptParse.helper <*> parseArgs)
-    (OptParse.fullDesc <> OptParse.footerDoc (Just $ OptParse.string footerStr))
+    (OptParse.fullDesc <> OptParse.footerDoc (Just $ OptParse.pretty footerStr))
   where
     -- Show the variables from the environment that we parse and the config file format
     footerStr =
