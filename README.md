@@ -2,6 +2,10 @@
 
 This is a template implementation of commands, flags, options, environment variable and configuration file parsing according to best practices.
 
+## DEPRECATED
+
+This Template is deprecated as of the release of [`opt-env-conf`](https://hackage.haskell.org/package/opt-env-conf).
+
 ## License
 
 This template is **not** free to use.
